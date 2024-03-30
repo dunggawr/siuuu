@@ -2,11 +2,12 @@ const ul = document.querySelector('.animelist ul');
 const forms = document.forms;
 
 // delete anime
-ul.addEventListener('click', (e) =>{
-    if (e.target.className == 'animelist__delete'){
+ul.addEventListener('click', (e) => {
+    if (e.target.className == 'animelist__delete') {
         const li = e.target.parentElement;
         li.parentNode.removeChild(li);
-    } 
+    }
+    saveAnime();
 })
 
 // filter anime
@@ -18,25 +19,44 @@ searchAnime.addEventListener('keyup', (e) => {
     const filter = input.value.toUpperCase();
     const li = ul.querySelectorAll('li');
 
-    for (i = 0; i< li.length; i++){
+    for (i = 0; i < li.length; i++) {
         const span = li[i].querySelector('.animelist__name');
         const name = span.textContent;
-        if (name.toUpperCase().indexOf(filter) > -1){
+        if (name.toUpperCase().indexOf(filter) > -1) {
             li[i].style.display = ''
-        } else{
+        } else {
             li[i].style.display = 'none';
         }
     }
 })
 
+//save animes
+function saveAnime() {
+    let listAnime = [];
+
+    const li = ul.querySelectorAll('li');
+    for (let i = 0; i < li.length; i++) {
+        const span = li[i].querySelector('.animelist__name');
+        let nameInfor = {
+            'name': span.textContent,
+            'completed': li[i].classList.contains('completed')
+        }
+        listAnime.push(nameInfor);
+    }
+
+    localStorage.setItem('listAnime', JSON.stringify(listAnime));
+}
+
 // load animes
 function loadAnimes() {
-    let Animeslist = data;
-    ul.innerHTML = '';
+    if (localStorage.getItem('listAnime') != null) {
+        let listAnime = JSON.parse(localStorage.getItem('listAnime'));
+        ul.innerHTML = '';
 
-    for (let i = 0; i < Animeslist.length; i++) {
-        let Anime = Animeslist[i];
-        watchAnime(Anime.name, Anime.completed);
+        for (let i = 0; i < listAnime.length; i++) {
+            let Anime = listAnime[i];
+            watchAnime(Anime.name, Anime.completed);
+        }
     }
 }
 
@@ -57,12 +77,12 @@ function watchAnime(inputValue, completed) {
     li.appendChild(animeName);
     li.appendChild(deleteButton);
 
-    if(completed) {
+    if (completed) {
         li.classList.add('completed');
     }
 
     ul.appendChild(li);
-    
+
     li.addEventListener('click', vuong);
 
     // reset input
@@ -70,11 +90,12 @@ function watchAnime(inputValue, completed) {
 }
 
 function vuong() {
-    if(this.classList.contains('completed')){
+    if (this.classList.contains('completed')) {
         this.classList.remove('completed');
     } else {
         this.classList.add('completed');
     }
+    saveAnime();
 }
 
 // add anime
@@ -83,11 +104,13 @@ addform.addEventListener('submit', (e) => {
     e.preventDefault();
 
     const input = e.target.querySelector('input').value;
-    if(input == ''){
+    if (input == '') {
         alert('please enter anime');
         return;
     }
     watchAnime(input, false);
+    saveAnime();
 })
 
 loadAnimes();
+saveAnime();
